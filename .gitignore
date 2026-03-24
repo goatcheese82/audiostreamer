@@ -1,0 +1,17 @@
+# Go
+/audiostreamer
+
+# Svelte/Node
+admin/node_modules/
+admin/build/
+admin/.svelte-kit/
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

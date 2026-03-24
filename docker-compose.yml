@@ -1,0 +1,44 @@
+services:
+  audiostreamer:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - /mnt/tower:/mnt/tower:ro
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://audiostreamer:${DB_PASSWORD:-audiostreamer}@db:5432/audiostreamer?sslmode=disable
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=audiostreamer
+      - POSTGRES_USER=audiostreamer
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-audiostreamer}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U audiostreamer"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  admin:
+    build: ./admin
+    ports:
+      - "3000:3000"
+    environment:
+      - PUBLIC_API_URL=http://10.0.2.166:8080
+      - PUBLIC_ADMIN_TOKEN=${ADMIN_TOKEN}
+    depends_on:
+      - audiostreamer
+    restart: unless-stopped
+
+volumes:
+  pgdata:
